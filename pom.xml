@@ -16,6 +16,7 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<reactor-bom.version>Californium-SR6</reactor-bom.version>
 	</properties>
 
 	<dependencies>

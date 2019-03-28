@@ -1,6 +1,14 @@
 # spring-boot-webflux-webclient-netty-leak
 A sample Spring Boot 2.1.3 app showing the 'LEAK' in netty.
 
+---
+### tl;dr
+To fix this issue make sure you are using Reactor Core 3.2.8 and Reactor Netty 0.8.6 which in not a part of Spring Boot 2.1.3. You can update your `pom.xml` by adding it to properties section:
+```xml
+<reactor-bom.version>Californium-SR6</reactor-bom.version>
+```
+---
+
 Simple application which returns fastest result of two `WebClient` requests using `Mono.first()`.
 ```java
 @Configuration
