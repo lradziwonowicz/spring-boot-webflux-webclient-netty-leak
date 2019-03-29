@@ -6,7 +6,6 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -25,21 +24,21 @@ public class RouterConfig {
   }
 
   public Mono<ServerResponse> test(ServerRequest request) {
-    Mono<ClientResponse> exchangeA =
+    Mono<String> exchangeA =
         WebClient.create("http://localhost:8008")
             .get()
             .uri(uriBuilder -> uriBuilder.path("/delay/5").build())
-            .exchange();
+            .exchange()
+            .flatMap(response -> response.bodyToMono(String.class));
 
-    Mono<ClientResponse> exchangeB =
+    Mono<String> exchangeB =
         WebClient.create("http://localhost:8008")
             .get()
             .uri(uriBuilder -> uriBuilder.path("/status/200").build())
-            .exchange();
+            .exchange()
+            .flatMap(response -> response.bodyToMono(String.class));
 
     return Mono.first(exchangeA, exchangeB)
-        .flatMap(
-            clientResponse ->
-                 ServerResponse.status(clientResponse.rawStatusCode()).build());
+        .flatMap(body -> ServerResponse.ok().body(Mono.just(body), String.class));
   }
 }
