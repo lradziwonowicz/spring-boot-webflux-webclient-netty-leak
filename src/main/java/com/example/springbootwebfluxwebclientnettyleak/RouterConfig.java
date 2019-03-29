@@ -6,6 +6,8 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
@@ -24,21 +26,24 @@ public class RouterConfig {
   }
 
   public Mono<ServerResponse> test(ServerRequest request) {
-    Mono<String> exchangeA =
+    Mono<Void> exchangeA =
         WebClient.create("http://localhost:8008")
             .get()
             .uri(uriBuilder -> uriBuilder.path("/delay/5").build())
-            .exchange()
-            .flatMap(response -> response.bodyToMono(String.class));
+            .retrieve()
+            .bodyToFlux(DataBuffer.class)
+            .map(DataBufferUtils::release)
+            .then();
 
-    Mono<String> exchangeB =
+    Mono<Void> exchangeB =
         WebClient.create("http://localhost:8008")
             .get()
             .uri(uriBuilder -> uriBuilder.path("/status/200").build())
-            .exchange()
-            .flatMap(response -> response.bodyToMono(String.class));
+            .retrieve()
+            .bodyToFlux(DataBuffer.class)
+            .map(DataBufferUtils::release)
+            .then();
 
-    return Mono.first(exchangeA, exchangeB)
-        .flatMap(body -> ServerResponse.ok().body(Mono.just(body), String.class));
+    return Mono.first(exchangeA, exchangeB).flatMap(aVoid -> ServerResponse.ok().build());
   }
 }
